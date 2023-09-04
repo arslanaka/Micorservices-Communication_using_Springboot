@@ -5,24 +5,31 @@ import com.example.demo.dto.DepartmentDto;
 import com.example.demo.dto.EmployeeDto;
 import com.example.demo.entity.Employee;
 import com.example.demo.repository.EmployeeRepository;
+import com.example.demo.service.ApiClient;
 import com.example.demo.service.EmployeeService;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @AllArgsConstructor
+@NoArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
+
 //    private RestTemplate restTemplate;
 
-    private WebClient webClient;
+//    private WebClient webClient;
+
+    @Autowired
+    private ApiClient apiClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -56,13 +63,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 //
 //        DepartmentDto departmentDto = responseEntity.getBody();
 
-        DepartmentDto departmentDto =  webClient.get()
-                .uri("http://localhost:8085/api/departments/" +employee.getDepartmentCode())
-                .retrieve()
-                .bodyToMono(DepartmentDto.class)
-                .block();
+//        DepartmentDto departmentDto =  webClient.get()
+//                .uri("http://localhost:8085/api/departments/" +employee.getDepartmentCode())
+//                .retrieve()
+//                .bodyToMono(DepartmentDto.class)
+//                .block();
 
-        APIResponseDto apiResponseDto = new APIResponseDto();
+        DepartmentDto departmentDto = apiClient.getDepartment(employee.getDepartmentCode());
+        logger.info("Department name : "+departmentDto.getDepartmentName());
+
 
         EmployeeDto employeeDto = new EmployeeDto(
                 employee.getId(),
@@ -71,8 +80,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee.getEmail(),
                 employee.getDepartmentCode());
 
+        APIResponseDto apiResponseDto = new APIResponseDto();
         apiResponseDto.setEmployee(employeeDto);
         apiResponseDto.setDepartment(departmentDto);
+
+
 
         return apiResponseDto;
     }
